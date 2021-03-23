@@ -1,6 +1,7 @@
 'use strict';
 
-// TODO: Add all other buttons' functionality
+// TODO: Add commas to textLabels when digits are below 10 ✅
+// TODO: Add all other buttons' functionality 
 // TODO: Don't allow decimal places to wreck the 9 max digit rule
 // TODO: Change operations to bigint
 // TODO: Start using e at 1e9
@@ -103,7 +104,7 @@ const changeSignClicked = function(button) {
 
 const remainderClicked = function(button) {
   textLabel.textContent = 
-    specialFnSetValues(values, rightAfterEqualClicked, calcRemainder);;
+    specialFnSetValues(values, rightAfterEqualClicked, calcRemainder);
 };
 
 const operatorClicked = function(button) {
