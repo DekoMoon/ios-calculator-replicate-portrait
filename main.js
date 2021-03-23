@@ -1,143 +1,313 @@
 'use strict';
 
 
-/**********
-* Variables
-***********/
+/************
+* Variables 
+*************/
 
 const container = document.querySelector('.container');
-const label = document.querySelector('.label');
-const clearBtn = document.querySelector('.clear');
+const textLabel = document.querySelector('.label');
 
-let prevNum = 0;
-let operator = '';
-let num = 0;
-let ans = 0;
+const values = function() {
+  let operator = '';
+  let activeValue = 0;
+  let backgroundValue = 0;
+  let equalJustClicked = false;
+  let operatorJustClicked = false;
+
+  const getOperator = () => operator;
+  const setOperator = (value) => operator = value;
+  const operatorExists = () => operator ? true : false;
+
+  const getActiveValue = () => activeValue;
+  const setActiveValue = (value) => activeValue = value;
+  const activeValueExists = () => activeValue !== 0 ? true : false; // Could be shortened
+
+  const getBackgroundValue = () => backgroundValue;
+  const setBackgroundValue = (value) => backgroundValue = value;
+  const backgroundValueExists = () => backgroundValue !== 0 ? true : false; // Could be shortened
+
+  const getEqualJustClicked = () => equalJustClicked;
+  const setEqualJustClicked = (value) => equalJustClicked = value;
+
+  const setOperatorJustClicked = (value) => operatorJustClicked = value;
+  const getOperatorJustClicked = () => operatorJustClicked;
+
+  const doMainVarExist = () => operator && activeValue && backgroundValue;
+
+  const init = function() {
+    operator = '';
+    activeValue = 0;
+    backgroundValue = 0;
+    equalJustClicked = false;
+    operatorJustClicked = false;
+    textLabel.textContent = 0;
+  };
+
+
+  return {
+    getOperator,
+    setOperator,
+    operatorExists,
+
+    getActiveValue,
+    setActiveValue,
+    activeValueExists,
+
+    getBackgroundValue,
+    setBackgroundValue,
+    backgroundValueExists,
+
+    getEqualJustClicked,
+    setEqualJustClicked,
+
+    setOperatorJustClicked,
+    getOperatorJustClicked,
+
+    doMainVarExist,
+    init,
+  };
+}();
+
+values.init();
 
 
 
 
 
-/**********
-* Functions
-***********/
 
-// Init //
+/************
+* Main Function 
+*************/
 
-const init = function() {
-  prevNum = 0;
-  operator = '';
-  num = 0;
-  ans = 0;
+const clearClicked = function(button) {
+  values.init();
+}
 
-  clearBtn.textContent = 'AC';
-  label.textContent = 0;
+const changeSignClicked = function(button) {
+}
+
+const remainderClicked = function(button) {
+}
+
+const operatorClicked = function(button) {
+  if (rightAfterEqualClicked(values)) {
+    values.setEqualJustClicked(false);
+  }
+  values.setOperator(button.textContent);
+  values.setOperatorJustClicked(true);
 };
 
-init();
+const numberClicked = function(button) { 
+  if (mainExistAndEqualJustClicked(values)) {
+    values.init();
+    setValueToNumberClicked(values.setActiveValue, button);
+  }
+  else if (rightAfterOperatorClicked(values)) { // TODO: Problem? Did it replace ans with lastActiveValue?...
+    if (isFirstRoundAndNoBackgroundValue(values)) {
+      const lastActiveValue = values.getActiveValue();
+      values.setBackgroundValue(lastActiveValue);
+    }
+    setValueToNumberClicked(values.setActiveValue, button);
+    values.setOperatorJustClicked(false);
+  }
+  else {
+    addNumToMainValue(values, button);
+  }
 
-// Outsourced Function
+  textLabel.textContent = values.getActiveValue();
+  checkVariables();
+};
 
-const calcAnswer = function(num, operator, prevNum = num) {
-  console.log(prevNum);
-  switch(operator) {
+const dotClicked = function(button) {
+  // Ok... annoying one lol
+  // How do you store 0.00000?
+  // We could store it as an array, string or as an increment
+
+
+};
+
+const equalClicked = function(button) {
+  // Potential Bug: What happens when you press enter while 2nd number is -0?
+
+  if (values.doMainVarExist()) {
+    getAnsAndSetItAsBackgValue(values, textLabel);
+  }
+  else if (isFirstRoundAndNoBackgroundValue(values)) {
+    if (!values.operatorExists()) return;
+    copyActiveToBackground(values);
+    getAnsAndSetItAsBackgValue(values, textLabel);
+  } 
+  else {
+    alert('ERROR, equalClicked');
+    return;
+  }
+
+  values.setEqualJustClicked(true);
+  checkVariables();
+};
+
+
+
+
+
+/************
+* Abstraction & Encapsulation Functions 
+*************/
+
+const setValueToNumberClicked = function(setFunction, button) {
+  const numberConvertedTextContent = Number(button.textContent);
+  setFunction(numberConvertedTextContent);
+};
+
+const addNumToMainValue = function(values, button) {
+  const newActiveValue = Number(values.getActiveValue() + button.textContent);
+  values.setActiveValue(newActiveValue);
+};
+
+const getAnsAndSetItAsBackgValue = function(values, textLabel) {
+  const ans = operation(values.getBackgroundValue(), values.getOperator(), values.getActiveValue());
+  values.setBackgroundValue(ans);
+  textLabel.textContent = ans;
+};
+
+const copyActiveToBackground = function(values) {
+  values.setBackgroundValue(values.getActiveValue());
+};
+
+const mainExistAndEqualJustClicked = function(values) {
+  return values.doMainVarExist() && values.getEqualJustClicked();
+};
+
+const rightAfterOperatorClicked = function(values) {
+  return values.getOperatorJustClicked();
+};
+
+const rightAfterEqualClicked = function(values) {
+  return values.getEqualJustClicked();
+};
+
+const isFirstRoundAndNoBackgroundValue = function(values) {
+  return !values.backgroundValueExists();
+};
+
+
+
+
+
+/************
+* Check Variables
+*************/
+
+const checkVariables = function() {
+  console.log(`
+    Date: ${new Date().getSeconds()},
+    Active Value: ${values.getActiveValue()},
+    Operator Value: ${values.getOperator()},
+    Background Value: ${values.getBackgroundValue()},
+    Equal Clicked Just Now?: ${values.getEqualJustClicked()},
+    Operator Clicked Just Now?: ${values.getOperatorJustClicked()},
+  `);
+};
+
+
+
+
+/************
+* Operation and Get to Main Functions
+*************/
+
+const operation = function(backgroundValue, operator, activeValue) {
+  switch (operator) {
     case '/':
-      return prevNum / num;
-    
+      return backgroundValue / activeValue;
+
     case 'x':
-      return prevNum * num;
+      return backgroundValue * activeValue;
 
     case '-':
-      return prevNum - num;
+      return backgroundValue - activeValue;
 
     case '+':
-      return prevNum + num;
+      return backgroundValue + activeValue;
+
+    default:
+      alert('ERROR, operation');
   }
-}
+};
 
-// Button Pressed //
 
-console.log(-num);
+const specialClicked = function(button) {
+  switch (true) {
+    case button.classList.contains('clear'):
+      clearClicked(button);
+      break;
 
-const specBtnClicked = function(classList) {
-  // Pressing change-sign while there is an operator causes you to get 0 and the corresponding sign
-  // Pressing remainer while there is an operator causes prevNum to change
-  // init, num1, oper, num2, ans
+    case button.classList.contains('change-sign'):
+      changeSignClicked(button);
+      break;
 
-  if (classList.contains('clear')) init();
-  if (classList.contains('remainer')) num /= 100;
+    case button.classList.contains('remainder'):
+      remainderClicked(button);
+      break;
 
-  if (operator && !prevNum) {
-    if (classList.contains('change-sign')) {
-      prevNum = num;
-      num = -0;
-    }
-  } else {
-    // (classList.contains('change-sign')) num = -num;
-    // (classList.contains('remainer')) num /= 100;
-
+    default:
+      alert('ERROR, specialClicked');
   }
-
-  // else if (classList.contains('change-sign')) num = -num;
-  // else if (classList.contains('remainer')) num /= 100;
-
-  label.textContent = num;
-}
-
-const operBtnClicked = function(btnContent) {
-  operator = btnContent;
-}
-
-const equalBtnClicked = function() {
-  // init, num1, operator, num2, ans
-  const savedAns = calcAnswer(num, operator, prevNum || undefined);
-  const savedNum = num;
-  const savedOperator = operator;
-
-  init();
-
-  ans = savedAns;
-  num = savedNum;
-  operator = savedOperator;
-
-  console.log(prevNum, ans, num, operator);
-  label.textContent = ans;
-}
-
-const numBtnClicked = function(btnContent) {
-  if (num.length >= 9) return;
-  clearBtn.textContent = 'C';
-
-  if (operator & !prevNum) {
-    prevNum = num;
-    num = Number(textContent);
-  } else {
-    num = Number(num + btnContent);
-  }
-
-  label.textContent = num;
-}
+};
 
 
 
 
-
-/**********
+/************
 * Event Handler
-***********/
+*************/
 
+container.addEventListener('click', function(event) {
+  const button = event.target;
+  if (button.tagName !== 'BUTTON') return;
 
-container.addEventListener('click', function(e) {
-  const btnPressed = e.target;
+  switch (true) {
+    case button.classList.contains('special'):
+      specialClicked(button);
+      break;
 
-  if (btnPressed.textContent.contains('special')) specBtnClicked(btnPressed.textContent);
-  else if (btnPressed.textContent.contains('operator')) operBtnClicked(btnPressed.textContent);
-  else if (btnPressed.textContent.contains('equal')) equalBtnClicked();
-  else if (btnPressed.tagName === 'BUTTON') numBtnClicked(btnPressed.textContent);
+    case button.classList.contains('operator'):
+      operatorClicked(button);
+      break;
+    
+    case button.classList.contains('number'):
+      numberClicked(button);
+      break;
+    
+    case button.classList.contains('dot'):
+      dotClicked(button);
+      break;
+
+    case button.classList.contains('equal'):
+      equalClicked(button);
+      break;
+
+    default:
+      alert('ERROR, container');
+  }
 });
 
 
-// when you press 0 after a wipe, it doesn't change clear button textContent
 
 
-// I could make things a bit simpler by combining the functionality of prevNum and prevPressedBtn
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
