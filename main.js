@@ -1,6 +1,8 @@
 'use strict';
 
+// TODO: Add Core Features ✅
 // TODO: Add commas to textLabels when digits are below 10 ✅
+// TODO: Use Git for Version Control ✅
 // TODO: Add all other buttons' functionality ✅
 // TODO: Don't allow decimal places to wreck the 9 max digit rule
 // TODO: Add exception to last todo, when number is (999,999,999), allow up to 5 decimal places
@@ -424,6 +426,8 @@ container.addEventListener('click', function(event) {
       alert('ERROR, container');
   }
 
+  // (whole num + (decimals rounded)).length < 10,
+  // exception when number is (999,999,999): allow up to +5 decimal places
   if (digitsBelowTen()) textLabel.textContent = formatWithComma();
 
   checkVariables();
