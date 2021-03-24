@@ -424,8 +424,6 @@ container.addEventListener('click', function(event) {
       alert('ERROR, container');
   }
 
-  // SHIT WHY WONT 0 JUST TURN SIGN
-  // console.log(values.getActiveValue());
   if (digitsBelowTen()) textLabel.textContent = formatWithComma();
 
   checkVariables();
