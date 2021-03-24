@@ -1,8 +1,9 @@
 'use strict';
 
 // TODO: Add commas to textLabels when digits are below 10 ✅
-// TODO: Add all other buttons' functionality 
+// TODO: Add all other buttons' functionality ✅
 // TODO: Don't allow decimal places to wreck the 9 max digit rule
+// TODO: Add exception to last todo, when number is (999,999,999), allow up to 5 decimal places
 // TODO: Change operations to bigint
 // TODO: Start using e at 1e9
 // TODO: Allow num < 1e161
@@ -139,7 +140,7 @@ const numberClicked = function(button) {
     }
 
     default: {
-      if (valueIsStrZero(values)) setValueToNumberClicked(values.setActiveValue, button);
+      if (valueIsAZero(values)) setValueToNumberClicked(values.setActiveValue, button);
       else if (isDigitAboveEight(values.getActiveValue)) return;
       else addNumToActiveValue(values, button, setValueToNumberClicked);
     }
@@ -205,21 +206,21 @@ const copyActiveToBackground = function(values) {
 };
 
 const calcRemainder = function(getFunction, setFunction) {
-  const valueDivided = getFunction() / 100;
+  const valueDivided = String(getFunction() / 100); // Type Coercion
   return setFunction(valueDivided);
 };
 
 const calcChangeSign = function(getFunction, setFunction) {
-  const valueChangedSign = -getFunction();
-  return setFunction(valueChangedSign);
-};
+  let newValue;
 
-const removeComma = function(string) {
-  return string.replaceAll(',', '');
-};
+  if (getFunction() == 0) {
+    newValue = getFunction() === '0' ? '-0' : '0';
+  } else {
+    newValue = String(-getFunction()); // Type Coercion
+  }
 
-const removeDash = function(string) {
-  return string.replaceAll('-', '');
+  console.log(newValue);
+  return setFunction(newValue);
 };
 
 const specialFnSetValues = function(values, rightAfterEqualClicked, runFn) {
@@ -234,6 +235,35 @@ const specialFnSetValues = function(values, rightAfterEqualClicked, runFn) {
       values.setActiveValue
     );
   }
+};
+
+const removeDash = function(string) {
+  return string.replaceAll('-', '');
+};
+
+const valueToChange = function(values) { // Maybe implement this into clicker functions with another helper function to change justClicked and stuff
+  if (values.getEqualJustClicked()) {
+    return values.getBackgroundValue();
+  } else {
+    return values.getActiveValue();
+  }
+};
+
+const createNegNumDotDecimalObj = function(value) {
+  const regex = /(\-)?(\d+)(\.)?(\d+)?/;
+  const [, negative, wholeNumber, dot, decimalNumber] = value.match(regex);
+  return [negative, wholeNumber, dot, decimalNumber];
+};
+
+const addComma = function(stringNum) { // maybe use regex in the future
+  const array = stringNum.split('');
+  const addToThisIndex1 = array.length - 3;
+  const addToThisIndex2 = array.length - 6;
+
+  array.splice(addToThisIndex1, 0, ',');
+  if (array.length > 7) array.splice(addToThisIndex2, 0, ',');
+
+  return array.join('');
 };
 
 // -------------------------------- //
@@ -254,8 +284,8 @@ const isFirstRoundAndNoBackgroundValue = function(values) {
   return !values.backgroundValueExists();
 };
 
-const valueIsStrZero = function(values) {
-  return values.getActiveValue() === '0';
+const valueIsAZero = function(values) {
+  return values.getActiveValue() == 0;
 };
 
 const isDigitAboveEight = function(getValue) {
@@ -279,39 +309,19 @@ const isNegativeString = function(string) {
 
 
 const digitsBelowTen = function() {
-  const lengthWithoutDot = removeDash(removeComma(textLabel.textContent)).replace('.', '').length;
+  const lengthWithoutDot = 
+    removeDash(valueToChange(values)).replace('.', '').length;
   return lengthWithoutDot < 10;
 };
 
-const formatWithComma = function() { // Potential Bug: Be careful of decimal values
-  const separateDecimalArr = removeDash(removeComma(textLabel.textContent)).split('.')
-  const wholeNumbers = separateDecimalArr[0];
-  const decimalNumbers = separateDecimalArr[1] ? `.${separateDecimalArr[1]}` : '';
-  if (wholeNumbers.length <= 3) return textLabel.textContent;
+const formatWithComma = function() { 
+  const [negative = '', wholeNumber, dot = '', decimalNumber = ''] = 
+    createNegNumDotDecimalObj(valueToChange(values));
 
-  const formatWholeNumbers = function() { // Dear god this is terrible, make sure to refactor later
-    const negativeSign = isNegativeString(wholeNumbers) ? wholeNumbers[0] : '';
-    const arrayVersion = isNegativeString(wholeNumbers) ? 
-      wholeNumbers.slice(1, wholeNumbers.length - 1).split('') : 
-      wholeNumbers.split('');
+  if (wholeNumber.length <= 3) return valueToChange(values);
 
-    const addToThisIndex1 = arrayVersion.length - 3;
-    const addToThisIndex2 = arrayVersion.length - 6;
-
-    if (arrayVersion.length > 3 && arrayVersion.length < 7) {
-      arrayVersion.splice(addToThisIndex1, 0, ',');
-    }
-    else if (arrayVersion.length > 6) {
-      arrayVersion.splice(addToThisIndex1, 0, ',');
-      arrayVersion.splice(addToThisIndex2, 0, ',');
-    }
-
-    return negativeSign + arrayVersion.join('');
-  };
-
-  return formatWholeNumbers() + decimalNumbers;
+  return negative + addComma(wholeNumber) + dot + decimalNumber;
 };
-
 
 
 
@@ -414,6 +424,8 @@ container.addEventListener('click', function(event) {
       alert('ERROR, container');
   }
 
+  // SHIT WHY WONT 0 JUST TURN SIGN
+  // console.log(values.getActiveValue());
   if (digitsBelowTen()) textLabel.textContent = formatWithComma();
 
   checkVariables();
