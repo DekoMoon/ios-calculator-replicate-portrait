@@ -6,13 +6,21 @@
 
 const checkVariables = function() {
   const date = new Date();
+  const {
+    getActiveVal,
+    getBgVal,
+    getOpVal,
+    isAfterEq,
+    isAfterOp,
+  } = values;
+
   console.log(`
     Date: ${date.getMinutes()}:${date.getSeconds()},
-    Active Value: ${values.getActiveValue()},
-    Operator Value: ${values.getOperator()},
-    Background Value: ${values.getBackgroundValue()},
-    Equal Clicked Just Now?: ${values.getEqualJustClicked()},
-    Operator Clicked Just Now?: ${values.getOperatorJustClicked()},
+    Active Value: ${getActiveVal()},
+    Operator Value: ${getOpVal()},
+    Background Value: ${getBgVal()},
+    Equal Clicked Just Now?: ${isAfterEq()},
+    Operator Clicked Just Now?: ${isAfterOp()},
 
     Text Label: ${textLabel.textContent}
   `);
@@ -34,7 +42,7 @@ const digitsBelowTen = function() {
 
 const formatWithComma = function() { 
   const [negative = '', wholeNumber, dot = '', decimalNumber = ''] = 
-    createNegNumDotDecimalObj(valueToFormat(values));
+    separateStrNum(valueToFormat(values));
 
   if (wholeNumber.length <= 3) return valueToFormat(values);
 
@@ -46,3 +54,27 @@ const formatBigAndSmallNum = function() {
   if (valueToFormat(values)) ;
 };
 
+
+
+
+
+/************
+* Init
+*************/
+
+const init = function() {
+  const {
+    setAcVal,
+    setBgVal,
+    setOpVal,
+    setAfterEq,
+    setAfterOp,
+  } = values;
+
+  setOpVal('');
+  setAcVal('0');
+  setBgVal('0');
+  setAfterEq(false);
+  setAfterOp(false);
+  textLabel.textContent = '0';
+};

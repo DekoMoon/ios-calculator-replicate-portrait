@@ -7,87 +7,58 @@
 const container = document.querySelector('.container');
 const textLabel = document.querySelector('.label');
 
-const values = function() {
-  let operator = '';
-  let activeValue = '';
-  let backgroundValue = '';
-  let equalJustClicked = false;
-  let operatorJustClicked = false;
 
-  const getOperator = () => operator;
-  const setOperator = (value) => operator = value;
-  const operatorExists = () => operator ? true : false;
+const Value = function(initialValue) {
+  this._value = initialValue;
+};
 
-  const getActiveValue = () => activeValue;
-  const setActiveValue = (value) => activeValue = value;
-  const activeValueExists = () => activeValue !== '0' ? true : false; // Could be shortened
+Value.prototype.get = function() {
+  return this._value;
+};
 
-  const getBackgroundValue = () => backgroundValue;
-  const setBackgroundValue = (value) => backgroundValue = value;
-  const backgroundValueExists = () => backgroundValue !== '0' ? true : false; // Could be shortened
+Value.prototype.set = function(input) {
+  this._value = input;
+  return this;
+};
 
-  const getEqualJustClicked = () => equalJustClicked;
-  const setEqualJustClicked = (value) => equalJustClicked = value;
+Value.prototype.exists = function() {
+  if (!+this._value) return !!this._value;
+  if (+this._value) return this._value !== '0';
+};
 
-  const setOperatorJustClicked = (value) => operatorJustClicked = value;
-  const getOperatorJustClicked = () => operatorJustClicked;
 
-  const doMainVarExist = () => operatorExists() && activeValueExists() && backgroundValueExists();
+const activeValue = new Value('0');
+const backgroundValue = new Value('0');
+const operatorValue = new Value('');
+const equalJustClicked = new Value(false);
+const operatorJustClicked = new Value(false);
 
-  const init = function() {
-    operator = '';
-    activeValue = '0';
-    backgroundValue = '0';
-    equalJustClicked = false;
-    operatorJustClicked = false;
-    textLabel.textContent = '0';
-  };
 
+const values = function(valProto) {
+  const getBind = (value) => valProto.get.bind(value);
+  const setBind = (value) => valProto.set.bind(value);
+  const existsBind = (value) => valProto.exists.bind(value);
 
   return {
-    getOperator,
-    setOperator,
-    operatorExists,
+    getAcVal: getBind(activeValue),
+    setAcVal: setBind(activeValue),
+    acExists: existsBind(activeValue),
 
-    getActiveValue,
-    setActiveValue,
-    activeValueExists,
+    getBgVal: getBind(backgroundValue),
+    setBgVal: setBind(backgroundValue),
+    bgExists: existsBind(backgroundValue),
 
-    getBackgroundValue,
-    setBackgroundValue,
-    backgroundValueExists,
+    getOpVal: getBind(operatorValue),
+    setOpVal: setBind(operatorValue),
+    opExists: existsBind(operatorValue),
 
-    getEqualJustClicked,
-    setEqualJustClicked,
+    setAfterEq: setBind(equalJustClicked),
+    isAfterEq: existsBind(equalJustClicked),
 
-    setOperatorJustClicked,
-    getOperatorJustClicked,
-
-    doMainVarExist,
-    init,
-  };
-}();
-
-values.init();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    setAfterOp: setBind(operatorJustClicked),
+    isAfterOp: existsBind(operatorJustClicked),
+  }
+}(Value.prototype);
 
 
 

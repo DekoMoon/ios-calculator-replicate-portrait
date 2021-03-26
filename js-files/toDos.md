@@ -9,6 +9,7 @@
 - TODO: Allow num < 1e161
 - TODO: Allow num > 1e-101
 - TODO: Make Modular
+- TODO: Replace exist functions with !!
 
 - FIXME: Pressing operator again after "n * n *" SHOULD stop working, but instead it keeps doing calculations...
 

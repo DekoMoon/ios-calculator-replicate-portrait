@@ -4,76 +4,80 @@
 * Helper Function
 *************/
 
-const setValueToNumberClicked = function(setFunction, button) {
-  if (button.textContent === '.') setFunction('0.');
-  else setFunction(button.textContent);
+const setValueToNumberClicked = function(setVal, button) {
+  if (button.textContent === '.') setVal('0.');
+  else setVal(button.textContent);
 };
 
-const addNumToActiveValue = function(values, button, setValueToNumClicked) {
-  const newActiveValue = values.getActiveValue() + button.textContent;
-  values.setActiveValue(newActiveValue);
+const addNumToActiveValue = function({
+  getAcVal,
+  setAcVal,
+}, button) {
+  const newActiveValue = getAcVal() + button.textContent;
+  setAcVal(newActiveValue);
 };
 
-const getAnsAndSetItAsBackgValue = function(values, textLabel, operation) {
-  const numBackgroundValue = Number.parseFloat(values.getBackgroundValue());
-  const numActiveValue = Number.parseFloat(values.getActiveValue());
-  const ans = operation(numBackgroundValue, values.getOperator(), numActiveValue);
+const getAnsAndSetItAsBackgValue = function({
+  getAcVal,
+  getBgVal,
+  setBgVal,
+  getOpVal,
+}, textLabel, operation) {
+  const numBackgroundValue = Number.parseFloat(getBgVal());
+  const numActiveValue = Number.parseFloat(getAcVal());
+  const ans = operation(numBackgroundValue, getOpVal(), numActiveValue);
   const strAns = String(ans);
-  values.setBackgroundValue(strAns);
+  setBgVal(strAns);
   textLabel.textContent = strAns;
 };
 
-const copyActiveToBackground = function(values) {
-  values.setBackgroundValue(values.getActiveValue());
+const copyActiveToBackground = function({ getAcVal, setBgVal }) {
+  setBgVal(getAcVal());
 };
 
-const calcRemainder = function(getFunction, setFunction) {
-  const valueDivided = String(getFunction() / 100); // Type Coercion
-  return setFunction(valueDivided);
+const calcRemainder = function(getVal, setVal) {
+  const valueDivided = String(getVal() / 100); // Type Coercion'ed
+  return setVal(valueDivided);
 };
 
-const calcChangeSign = function(getFunction, setFunction) {
+const calcChangeSign = function(getVal, setVal) {
   let newValue;
 
-  if (getFunction() == 0) {
-    newValue = getFunction() === '0' ? '-0' : '0';
+  if (getFunc() == 0) {
+    newValue = getVal() === '0' ? '-0' : '0';
   } else {
-    newValue = String(-getFunction()); // Type Coercion
+    newValue = String(-getVal()); // Type Coercion'ed
   }
 
-  console.log(newValue);
-  return setFunction(newValue);
+  return setVal(newValue);
 };
 
-const specialFnSetValues = function(values, rightAfterEqualClicked, runFn) {
-  if (rightAfterEqualClicked(values)) {
-    return runFn(
-      values.getBackgroundValue, 
-      values.setBackgroundValue
-    );
-  } else {
-    return runFn(
-      values.getActiveValue, 
-      values.setActiveValue
-    );
-  }
+const specialFnSetValues = function({
+  getAcVal,
+  setAcVal,
+  getBgVal,
+  setBgVal,
+  isAfterEq,
+}, runFn) { // TODO: Refactor the else statement, I don't like them
+  if (!isAfterEq()) return runFn(getAcVal(), setAcVal());
+  else return runFn(getBgVal(), setBgVal());
 };
 
 const removeDash = function(string) {
   return string.replaceAll('-', '');
 };
 
-const valueToFormat = function(values) { // Maybe implement this into clicker functions with another helper function to change justClicked and stuff
-  if (values.getEqualJustClicked()) {
-    return values.getBackgroundValue();
-  } else {
-    return values.getActiveValue();
-  }
+const valueToFormat = function({
+  getAcVal,
+  getBgVal,
+  isAfterEq
+}) {
+  return isAfterEq() ? getBgVal() : getAcVal();
 };
 
-const createNegNumDotDecimalObj = function(value) {
+const separateStrNum = function(string) {
   const regex = /(\-)?(\d+)(\.)?(\d+)?/;
-  const [, negative, wholeNumber, dot, decimalNumber] = value.match(regex);
+  const [, negative, wholeNumber, dot, decimalNumber] = string.match(regex);
   return [negative, wholeNumber, dot, decimalNumber];
 };
 
@@ -88,30 +92,28 @@ const addComma = function(stringNum) { // maybe use regex in the future
   return array.join('');
 };
 
-// -------------------------------- //
 
-const mainExistAndEqualJustClicked = function(values) {
-  return values.doMainVarExist() && values.getEqualJustClicked();
+
+
+
+/************
+* Return True or False
+*************/
+
+const mainExistAndEqualJustClicked = function({ isAfterEq }, doMainVarExist) {
+  return isAfterEq() && doMainVarExist();
 };
 
-const rightAfterOperatorClicked = function(values) {
-  return values.getOperatorJustClicked();
+const isFirstRoundAndNoBackgroundValue = function({ bgExists }) {
+  return !bgExists();
 };
 
-const rightAfterEqualClicked = function(values) {
-  return values.getEqualJustClicked();
+const valueIsAZero = function(getVal) {
+  return getVal() == 0;
 };
 
-const isFirstRoundAndNoBackgroundValue = function(values) {
-  return !values.backgroundValueExists();
-};
-
-const valueIsAZero = function(values) {
-  return values.getActiveValue() == 0;
-};
-
-const isDigitAboveEight = function(getValue) {
-  const length = Array.from(getValue())
+const isDigitAboveEight = function(getVal) {
+  const length = Array.from(getVal())
     .filter(function(character) {
       return Number(character) ? true : false; 
     }).length;
@@ -127,19 +129,19 @@ const isNegativeString = function(string) {
 * Operation and Navigate to Functions
 *************/
 
-const operation = function(backgroundValue, operator, activeValue) {
+const operation = function({getAcVal, getBgVal}, operator) {
   switch (operator) {
     case '/':
-      return backgroundValue / activeValue;
+      return getBgVal() / getAcVal();
 
     case 'x':
-      return backgroundValue * activeValue;
+      return getBgVal() * getAcVal();
 
     case '-':
-      return backgroundValue - activeValue;
+      return getBgVal() - getAcVal();
 
     case '+':
-      return backgroundValue + activeValue;
+      return getBgVal() + getAcVal();
 
     default:
       alert('ERROR, operation');
@@ -172,6 +174,11 @@ const specialClicked = function(button) {
 
 
 
-
-
+const doMainVarExist = function({
+  acExists,
+  bgExists,
+  opExists,
+}) {
+  return acExists() && bgExists() && opExists();
+};
 

@@ -8,70 +8,70 @@
 *************/
 
 const clearClicked = function(button) {
-  values.init();
+  init();
 };
 
 
 const changeSignClicked = function(button) {
   textLabel.textContent = 
-    specialFnSetValues(values, rightAfterEqualClicked, calcChangeSign);
+    specialFnSetValues(values, calcChangeSign);
 };
 
 const remainderClicked = function(button) {
   textLabel.textContent = 
-    specialFnSetValues(values, rightAfterEqualClicked, calcRemainder);
+    specialFnSetValues(values, calcRemainder);
 };
 
 const operatorClicked = function(button) {
   // round 1, 0 x 9 error
   switch (true) {
-    case rightAfterEqualClicked(values):
-      values.setEqualJustClicked(false);
+    case values.isAfterEq():
+      values.setAfterEq(false);
       break;
 
-    case values.doMainVarExist():
+    case doMainVarExist(values):
       getAnsAndSetItAsBackgValue(values, textLabel, operation);
       break;
   }
 
-  values.setOperator(button.textContent);
-  values.setOperatorJustClicked(true);
+  values.setOpVal(button.textContent);
+  values.setAfterOp(true);
 };
 
 const numberClicked = function(button) {
   switch (true) {
     case mainExistAndEqualJustClicked(values): {
-      values.init();
-      setValueToNumberClicked(values.setActiveValue, button);
+      init();
+      setValueToNumberClicked(values.setAcVal, button);
       break;
     }
 
-    case rightAfterOperatorClicked(values): {
+    case values.isAfterOp(): {
       if (isFirstRoundAndNoBackgroundValue(values)) copyActiveToBackground(values);
-      setValueToNumberClicked(values.setActiveValue, button);
-      values.setOperatorJustClicked(false);
+      setValueToNumberClicked(values.setAcVal, button);
+      values.setAfterOp(false);
       break;
     }
 
     default: {
-      if (valueIsAZero(values)) setValueToNumberClicked(values.setActiveValue, button);
-      else if (isDigitAboveEight(values.getActiveValue)) return;
-      else addNumToActiveValue(values, button, setValueToNumberClicked);
+      if (valueIsAZero(values.getAcVal)) setValueToNumberClicked(values.setAcVal, button);
+      else if (isDigitAboveEight(values.getAcVal)) return;
+      else addNumToActiveValue(values, button);
     }
   }
 
-  textLabel.textContent = values.getActiveValue();
+  textLabel.textContent = values.getAcVal();
 };
 
 const equalClicked = function(button) {
   switch (true) {
-    case values.doMainVarExist(): {
+    case doMainVarExist(values): {
       getAnsAndSetItAsBackgValue(values, textLabel, operation);
       break;
     }
     
     case isFirstRoundAndNoBackgroundValue(values): {
-      if (!values.operatorExists()) return;
+      if (!values.opExists()) return;
       copyActiveToBackground(values);
       getAnsAndSetItAsBackgValue(values, textLabel, operation);
       break;
@@ -83,7 +83,7 @@ const equalClicked = function(button) {
     }
   }
 
-  values.setEqualJustClicked(true);
+  values.setAfterEq(true);
 };
 
 
