@@ -4,7 +4,7 @@
 // TODO: Add commas to textLabels when digits are below 10 ✅
 // TODO: Use Git for Version Control ✅
 // TODO: Add all other buttons' functionality ✅
-// TODO: Don't allow decimal places to wreck the 9 max digit rule
+
 // TODO: Add exception to last todo, when number is (999,999,999), allow up to 5 decimal places
 // TODO: Change operations to bigint
 // TODO: Start using e at 1e9
@@ -12,6 +12,9 @@
 // TODO: Allow num > 1e-101
 // TODO: Refactor functions in values
 
+// What to do tomorrow:
+// FIXME: Pressing operator multiple time after 'n x n x' operates things, which should not be possible.
+// TODO: Don't allow decimal places to wreck the 9 max digit rule
 
 
 /************
@@ -99,7 +102,6 @@ const clearClicked = function(button) {
   values.init();
 };
 
-// TODO: 88622.4888 is at 9 digits, can't display sign as negative (BUG)
 const changeSignClicked = function(button) {
   textLabel.textContent = 
     specialFnSetValues(values, rightAfterEqualClicked, calcChangeSign);
@@ -112,15 +114,9 @@ const remainderClicked = function(button) {
 
 const operatorClicked = function(button) {
   // round 1, 0 x 9 error
-  switch (true) {
-    case rightAfterEqualClicked(values):
-      values.setEqualJustClicked(false);
-      break;
+  if (rightAfterEqualClicked(values)) values.setEqualJustClicked(false);
+  else if (values.doMainVarExist() && !values.getOperatorJustClicked()) getAnsAndSetItAsBackgValue(values, textLabel, operation);
 
-    case values.doMainVarExist():
-      getAnsAndSetItAsBackgValue(values, textLabel, operation);
-      break;
-  }
 
   values.setOperator(button.textContent);
   values.setOperatorJustClicked(true);
@@ -143,7 +139,7 @@ const numberClicked = function(button) {
 
     default: {
       if (valueIsAZero(values)) setValueToNumberClicked(values.setActiveValue, button);
-      else if (isDigitAboveEight(values.getActiveValue)) return;
+      else if (isDigitAboveEight(values.getActiveValue())) return;
       else addNumToActiveValue(values, button, setValueToNumberClicked);
     }
   }
@@ -239,16 +235,8 @@ const specialFnSetValues = function(values, rightAfterEqualClicked, runFn) {
   }
 };
 
-const removeDash = function(string) {
+const rmDash = function(string) {
   return string.replaceAll('-', '');
-};
-
-const valueToChange = function(values) { // Maybe implement this into clicker functions with another helper function to change justClicked and stuff
-  if (values.getEqualJustClicked()) {
-    return values.getBackgroundValue();
-  } else {
-    return values.getActiveValue();
-  }
 };
 
 const createNegNumDotDecimalObj = function(value) {
@@ -257,8 +245,8 @@ const createNegNumDotDecimalObj = function(value) {
   return [negative, wholeNumber, dot, decimalNumber];
 };
 
-const addComma = function(stringNum) { // maybe use regex in the future
-  const array = stringNum.split('');
+const addComma = function(strNum) { // maybe use regex in the future
+  const array = strNum.split('');
   const addToThisIndex1 = array.length - 3;
   const addToThisIndex2 = array.length - 6;
 
@@ -267,6 +255,19 @@ const addComma = function(stringNum) { // maybe use regex in the future
 
   return array.join('');
 };
+
+const rmComma = function(strNum) {
+  return strNum.replaceAll(',', '');
+};
+
+const getStrDigit = function(strNum, rmDash, rmComma) {
+  return rmComma(rmDash(strNum));
+};
+
+const roundAns = function(ans) {
+  if (!isDigitAboveEight(ans)) return ans;
+  
+}
 
 // -------------------------------- //
 
@@ -290,10 +291,10 @@ const valueIsAZero = function(values) {
   return values.getActiveValue() == 0;
 };
 
-const isDigitAboveEight = function(getValue) {
-  const length = Array.from(getValue())
-    .filter(function(character) {
-      return Number(character) ? true : false; 
+const isDigitAboveEight = function(strNum) {
+  const length = Array.from(strNum)
+    .filter(function(char) {
+      return !!Number(char); 
     }).length;
   return length > 8;
 };
@@ -312,15 +313,15 @@ const isNegativeString = function(string) {
 
 const digitsBelowTen = function() {
   const lengthWithoutDot = 
-    removeDash(valueToChange(values)).replace('.', '').length;
+    getStrDigit(textLabel.textContent, rmDash, rmComma).replace('.', '').length;
   return lengthWithoutDot < 10;
 };
 
-const formatWithComma = function() { 
+const formatWithComma = function(strNum) { 
   const [negative = '', wholeNumber, dot = '', decimalNumber = ''] = 
-    createNegNumDotDecimalObj(valueToChange(values));
+    createNegNumDotDecimalObj(rmComma(strNum));
 
-  if (wholeNumber.length <= 3) return valueToChange(values);
+  if (wholeNumber.length <= 3) return strNum;
 
   return negative + addComma(wholeNumber) + dot + decimalNumber;
 };
@@ -355,22 +356,30 @@ const checkVariables = function() {
 *************/
 
 const operation = function(backgroundValue, operator, activeValue) {
+  let ans;
+
   switch (operator) {
     case '/':
-      return backgroundValue / activeValue;
+      ans = backgroundValue / activeValue;
+      break;
 
     case 'x':
-      return backgroundValue * activeValue;
+      ans = backgroundValue * activeValue;
+      break;
 
     case '-':
-      return backgroundValue - activeValue;
+      ans = backgroundValue - activeValue;
+      break;
 
     case '+':
-      return backgroundValue + activeValue;
+      ans = backgroundValue + activeValue;
+      break;
 
     default:
       alert('ERROR, operation');
   }
+
+  return roundAns(ans); // Violated by using outside scope but ok for now..
 };
 
 
@@ -428,7 +437,7 @@ container.addEventListener('click', function(event) {
 
   // (whole num + (decimals rounded)).length < 10,
   // exception when number is (999,999,999): allow up to +5 decimal places
-  if (digitsBelowTen()) textLabel.textContent = formatWithComma();
+  if (digitsBelowTen()) textLabel.textContent = formatWithComma(textLabel.textContent);
 
   checkVariables();
 });
