@@ -1,6 +1,7 @@
 
 # Recreating iOS Calculator (Portrait) in the Web (poorly coded edition) 
 
+I can't believe this thing took a total of 30 hours... Been doing this without looking up on how to create a calculator, let's see how others do it... and make myself feel like a ultra noob while I am at it.
 
 ## What I learned:
 - Learning to plan ahead
