@@ -1,20 +1,25 @@
 'use strict';
 
-// TODO: Add Core Features ✅
+// TODO: [...coreFeatures] ✅
 // TODO: Add commas to textLabels when digits are below 10 ✅
 // TODO: Use Git for Version Control ✅
 // TODO: Add all other buttons' functionality ✅
-
-// TODO: Add exception to last todo, when number is (999,999,999), allow up to 5 decimal places
-// TODO: Change operations to bigint
+// TODO: Don't allow decimal places to wreck the 9 max digit rule ✅
 // TODO: Start using e at 1e9
-// TODO: Allow num < 1e161
-// TODO: Allow num > 1e-101
-// TODO: Refactor functions in values
+// TODO: Allow num < 9e15
+// TODO: Allow num > 1e-16
+// TODO: Add more CSS
+// TODO: Refactor in 6 months or when I get better at coding...
 
-// What to do tomorrow:
-// FIXME: Pressing operator multiple time after 'n x n x' operates things, which should not be possible.
-// TODO: Don't allow decimal places to wreck the 9 max digit rule
+// Not Doing: Decrease textLabel font-size as number reaches the left edge of the textLabel
+// Not Doing: Add exception to last todo, when number is (999,999,999), allow up to 5 decimal places
+
+// Maybe Not Doing: Make CSS Responsive
+
+// Potentially doable when we start rounding up to 5 decimal points when we use e: x.xxxxxexx, 1.59273e10. However I am done with this calculator...
+// Scraped: Allow num < 1e161
+// Scraped: Allow num > 1e-101
+
 
 
 /************
@@ -137,9 +142,9 @@ const numberClicked = function(button) {
       break;
     }
 
-    default: {
+    default: { // Add num to active value
       if (valueIsAZero(values)) setValueToNumberClicked(values.setActiveValue, button);
-      else if (isDigitAboveEight(values.getActiveValue())) return;
+      else if (digitAboveSpecified(values.getActiveValue(), 8)) return;
       else addNumToActiveValue(values, button, setValueToNumberClicked);
     }
   }
@@ -264,10 +269,14 @@ const getStrDigit = function(strNum, rmDash, rmComma) {
   return rmComma(rmDash(strNum));
 };
 
-const roundAns = function(ans) {
-  if (!isDigitAboveEight(ans)) return ans;
+const roundAns = function(ans, digitAboveSpecified) {
+  if (!digitAboveSpecified(ans, 9)) return ans;
   
-}
+  const permittedDeci = 9 - ans.replace('-', '').split('.')[0].length;
+  const roundedAns = Number(ans).toFixed(permittedDeci);
+  const trailingZeroRemoved = Number(roundedAns).toString();
+  return trailingZeroRemoved;
+};
 
 // -------------------------------- //
 
@@ -288,15 +297,15 @@ const isFirstRoundAndNoBackgroundValue = function(values) {
 };
 
 const valueIsAZero = function(values) {
-  return values.getActiveValue() == 0;
+  return values.getActiveValue() === '0';
 };
 
-const isDigitAboveEight = function(strNum) {
+const digitAboveSpecified = function(strNum, specifiedLength) {
   const length = Array.from(strNum)
     .filter(function(char) {
-      return !!Number(char); 
+      return typeof Number(char) === 'number'; 
     }).length;
-  return length > 8;
+  return length > specifiedLength;
 };
 
 const isNegativeString = function(string) {
@@ -379,7 +388,10 @@ const operation = function(backgroundValue, operator, activeValue) {
       alert('ERROR, operation');
   }
 
-  return roundAns(ans); // Violated by using outside scope but ok for now..
+  ans = roundAns(String(ans), digitAboveSpecified); // Using outside scope but ok for now..
+  ans = exponentForm(ans);
+
+  return ans;
 };
 
 
