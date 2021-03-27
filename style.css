@@ -10,7 +10,6 @@ button {
 
   width: 65px;
   height: 65px;
-  background-color: hsla(0, 0%, 30%, 1);
 
   border: none;
   border-radius: 50%;
@@ -50,6 +49,19 @@ button {
   justify-content: space-around;
 }
 
+
+
+/* Disappear Transition */
+
+.disappear-transition {
+  transition: background-color 500ms;
+  transition-timing-function: ease-in;
+}
+
+
+
+/* Numbers */
+
 .zero {
   width: 135px;
   height: 65px;
@@ -57,13 +69,56 @@ button {
   border-radius: 50px;
 }
 
+.number {
+  background-color: hsla(0, 0%, 30%, 1);
+}
+
+.number:active {
+  background-color: hsla(0, 0%, 50%, 1);
+}
+
+
+
+
+
+/* Special */
+
 .special {
   color: black;
   background-color: hsla(0, 0%, 75%, 1);
 }
+
+.special:active {
+  background-color: hsla(0, 0%, 100%, 1);
+}
+
+
+/* Operator and Equal */
 
 .operator,
 .equal {
   font-size: 2.1em;
   background-color: hsla(40, 100%, 50%, 1);
 }
+
+
+
+/* Operator */
+
+.operator:active {
+  background-color: hsla(40, 100%, 85%, 1);
+}
+
+.operator-active {
+  color: hsla(40, 100%, 50%, 1);
+  background-color: hsla(40, 100%, 100%, 1);
+}
+
+
+/* Equal */
+
+.equal:active {
+  background-color: hsla(40, 100%, 85%, 1);
+}
+
+

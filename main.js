@@ -1,33 +1,13 @@
 'use strict';
 
-// TODO: [...coreFeatures] ✅
-// TODO: Add commas to textLabels when digits are below 10 ✅
-// TODO: Use Git for Version Control ✅
-// TODO: Add all other buttons' functionality ✅
-// TODO: Don't allow decimal places to wreck the 9 max digit rule ✅
-// TODO: Start using e at 1e9
-// TODO: Allow num < 9e15
-// TODO: Allow num > 1e-16
-// TODO: Add more CSS
-// TODO: Refactor in 6 months or when I get better at coding...
-
-// Not Doing: Decrease textLabel font-size as number reaches the left edge of the textLabel
-// Not Doing: Add exception to last todo, when number is (999,999,999), allow up to 5 decimal places
-
-// Maybe Not Doing: Make CSS Responsive
-
-// Potentially doable when we start rounding up to 5 decimal points when we use e: x.xxxxxexx, 1.59273e10. However I am done with this calculator...
-// Scraped: Allow num < 1e161
-// Scraped: Allow num > 1e-101
-
-
-
 /************
 * Variables 
 *************/
 
 const container = document.querySelector('.container');
 const textLabel = document.querySelector('.label');
+const clearButton = document.querySelector('.clear');
+let prevOp;
 
 const values = function() {
   let operator = '';
@@ -63,6 +43,7 @@ const values = function() {
     equalJustClicked = false;
     operatorJustClicked = false;
     textLabel.textContent = '0';
+    clearButton.textContent = 'AC';
   };
 
 
@@ -98,7 +79,6 @@ values.init();
 
 
 
-
 /************
 * Clicked Function 
 *************/
@@ -108,18 +88,33 @@ const clearClicked = function(button) {
 };
 
 const changeSignClicked = function(button) {
+  if (values.getEqualJustClicked() && isFalsy(values.getBackgroundValue())) {
+    values.setActiveValue('-0');
+    textLabel.textContent = values.getActiveValue();
+    console.log('PLS NO');
+    return;
+  } 
+
+  if (values.getOperatorJustClicked()) {
+    values.setBackgroundValue(values.getActiveValue());
+    values.setActiveValue('-0');
+    textLabel.textContent = '-0';
+    values.setOperatorJustClicked(false);
+    return;
+  }
+
   textLabel.textContent = 
-    specialFnSetValues(values, rightAfterEqualClicked, calcChangeSign);
+    specialFnSetValues(values, calcChangeSign);
 };
 
 const remainderClicked = function(button) {
   textLabel.textContent = 
-    specialFnSetValues(values, rightAfterEqualClicked, calcRemainder);
+    specialFnSetValues(values, calcRemainder);
 };
 
 const operatorClicked = function(button) {
   // round 1, 0 x 9 error
-  if (rightAfterEqualClicked(values)) values.setEqualJustClicked(false);
+  if (values.getEqualJustClicked()) values.setEqualJustClicked(false);
   else if (values.doMainVarExist() && !values.getOperatorJustClicked()) getAnsAndSetItAsBackgValue(values, textLabel, operation);
 
 
@@ -135,7 +130,7 @@ const numberClicked = function(button) {
       break;
     }
 
-    case rightAfterOperatorClicked(values): {
+    case values.getOperatorJustClicked(): {
       if (isFirstRoundAndNoBackgroundValue(values)) copyActiveToBackground(values);
       setValueToNumberClicked(values.setActiveValue, button);
       values.setOperatorJustClicked(false);
@@ -175,6 +170,7 @@ const equalClicked = function(button) {
   }
 
   values.setEqualJustClicked(true);
+  values.setOperatorJustClicked(false);
 };
 
 
@@ -222,27 +218,24 @@ const calcChangeSign = function(getFunction, setFunction) {
     newValue = String(-getFunction()); // Type Coercion
   }
 
-  console.log(newValue);
   return setFunction(newValue);
 };
 
-const specialFnSetValues = function(values, rightAfterEqualClicked, runFn) {
-  if (rightAfterEqualClicked(values)) {
-    return runFn(
+const specialFnSetValues = function(values, modifyValue) {
+  if (values.getOperatorJustClicked()) {
+    return modifyValue(
       values.getBackgroundValue, 
       values.setBackgroundValue
     );
-  } else {
-    return runFn(
+  } 
+  else { // Change active value
+    return modifyValue(
       values.getActiveValue, 
       values.setActiveValue
     );
   }
 };
 
-const rmDash = function(string) {
-  return string.replaceAll('-', '');
-};
 
 const createNegNumDotDecimalObj = function(value) {
   const regex = /(\-)?(\d+)(\.)?(\d+)?/;
@@ -265,31 +258,52 @@ const rmComma = function(strNum) {
   return strNum.replaceAll(',', '');
 };
 
+const rmDash = function(string) {
+  return string.replaceAll('-', '');
+};
+
 const getStrDigit = function(strNum, rmDash, rmComma) {
   return rmComma(rmDash(strNum));
 };
 
-const roundAns = function(ans, digitAboveSpecified) {
-  if (!digitAboveSpecified(ans, 9)) return ans;
+const roundDeci = function(ans, digitAboveSpecified, roundTo) {
+  if (!digitAboveSpecified(ans, roundTo)) return ans;
   
-  const permittedDeci = 9 - ans.replace('-', '').split('.')[0].length;
+  const permittedDeci = roundTo - ans.replace('-', '').split('.')[0].length;
   const roundedAns = Number(ans).toFixed(permittedDeci);
   const trailingZeroRemoved = Number(roundedAns).toString();
   return trailingZeroRemoved;
 };
 
+
+const overMaxExpForm = function(ans) {
+  let currentAns = ans;
+  let exponent = 0;
+  let total;
+
+  do {
+    if (currentAns >= 10) {
+      currentAns /= 10;
+      exponent++;
+    }
+    else if (currentAns < 1) {
+      currentAns *= 10;
+      exponent--;
+    }
+  } while (currentAns >= 10 || currentAns < 1);
+
+  total = `${+currentAns.toFixed(5)}e${exponent}`;
+  if (total > 9e15 || total < 1e-16) return 'Error';
+
+  return (+total).toString() ? total : 'Error';
+};
+
+
+
 // -------------------------------- //
 
 const mainExistAndEqualJustClicked = function(values) {
   return values.doMainVarExist() && values.getEqualJustClicked();
-};
-
-const rightAfterOperatorClicked = function(values) {
-  return values.getOperatorJustClicked();
-};
-
-const rightAfterEqualClicked = function(values) {
-  return values.getEqualJustClicked();
 };
 
 const isFirstRoundAndNoBackgroundValue = function(values) {
@@ -312,6 +326,10 @@ const isNegativeString = function(string) {
   return string[0] === '-';
 };
 
+const isFalsy = function(value) {
+  const strVal = String(value);
+  return strVal === 'Error' || strVal === 'NaNe0' || strVal === 'NaN';
+};
 
 
 
@@ -321,8 +339,10 @@ const isNegativeString = function(string) {
 
 
 const digitsBelowTen = function() {
+  if (isFalsy(textLabel.textContent)) return false;
+
   const lengthWithoutDot = 
-    getStrDigit(textLabel.textContent, rmDash, rmComma).replace('.', '').length;
+    (+getStrDigit(textLabel.textContent, rmDash, rmComma).replace('.', '')).toString().length;
   return lengthWithoutDot < 10;
 };
 
@@ -339,23 +359,23 @@ const formatWithComma = function(strNum) {
 
 
 
-/************
-* Check Variables
-*************/
+// /************
+// * Check Variables
+// *************/
 
-const checkVariables = function() {
-  const date = new Date();
-  console.log(`
-    Date: ${date.getMinutes()}:${date.getSeconds()},
-    Active Value: ${values.getActiveValue()},
-    Operator Value: ${values.getOperator()},
-    Background Value: ${values.getBackgroundValue()},
-    Equal Clicked Just Now?: ${values.getEqualJustClicked()},
-    Operator Clicked Just Now?: ${values.getOperatorJustClicked()},
+// const checkVariables = function() {
+//   const date = new Date();
+//   console.log(`
+//     Date: ${date.getMinutes()}:${date.getSeconds()},
+//     Active Value: ${values.getActiveValue()},
+//     Operator Value: ${values.getOperator()},
+//     Background Value: ${values.getBackgroundValue()},
+//     Equal Clicked Just Now?: ${values.getEqualJustClicked()},
+//     Operator Clicked Just Now?: ${values.getOperatorJustClicked()},
 
-    Text Label: ${textLabel.textContent}
-  `);
-};
+//     Text Label: ${textLabel.textContent}
+//   `);
+// };
 
 
 
@@ -388,8 +408,9 @@ const operation = function(backgroundValue, operator, activeValue) {
       alert('ERROR, operation');
   }
 
-  ans = roundAns(String(ans), digitAboveSpecified); // Using outside scope but ok for now..
-  ans = exponentForm(ans);
+  // Using outside scope but ok for now..
+  if (ans < (10 ** 9) && ans > (10 ** -9)) ans = roundDeci(String(ans), digitAboveSpecified, 9);
+  else if (ans != 0) ans = overMaxExpForm(ans);
 
   return ans;
 };
@@ -425,33 +446,36 @@ const specialClicked = function(button) {
 container.addEventListener('click', function(event) {
   const button = event.target;
   if (button.tagName !== 'BUTTON') return;
+  rmPrevOpClass();
 
   switch (true) {
     case button.classList.contains('special'):
       specialClicked(button);
+      flash(button);
       break;
 
     case button.classList.contains('operator'):
       operatorClicked(button);
+      hold(button);
       break;
     
     case button.classList.contains('number'):
       numberClicked(button);
+      flash(button);
+      clearButton.textContent = 'C';
       break;
 
     case button.classList.contains('equal'):
       equalClicked(button);
+      flash(button);
       break;
 
     default:
       alert('ERROR, container');
   }
 
-  // (whole num + (decimals rounded)).length < 10,
-  // exception when number is (999,999,999): allow up to +5 decimal places
   if (digitsBelowTen()) textLabel.textContent = formatWithComma(textLabel.textContent);
-
-  checkVariables();
+  if (isFalsy(textLabel.textContent)) textLabel.textContent = 'Error';
 });
 
 
@@ -472,3 +496,24 @@ container.addEventListener('click', function(event) {
 
 
 
+/************
+* Manipulate the Buttons
+*************/
+
+const flash = function(button, time = 500) {
+  button?.classList.add('disappear-transition');
+
+  setTimeout(() => button?.classList.remove('disappear-transition'), time);
+};
+
+
+
+const hold = function(button) {
+  button.classList.add('operator-active');
+  prevOp = button;
+};
+
+const rmPrevOpClass = function() {
+  flash(prevOp);
+  prevOp?.classList.remove('operator-active');
+};
