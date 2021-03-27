@@ -388,7 +388,7 @@ const operation = function(backgroundValue, operator, activeValue) {
   let ans;
 
   switch (operator) {
-    case '/':
+    case '÷':
       ans = backgroundValue / activeValue;
       break;
 
